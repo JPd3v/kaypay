@@ -4,8 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node ./dist/app.js",
-    "build": "cross-env NODE_ENV=production tsc && node ./dist/app.js",
+    "start": "cross-env NODE_ENV=production node ./build/app.js",
+    "build": "tsc && cross-env NODE_ENV=production node ./build/app.js",
     "dev": "cross-env NODE_ENV=development ts-node-dev ./src/app.ts",
     "test": "cross-env NODE_ENV=testing jest --verbose --watchAll"
   },
