@@ -7,9 +7,14 @@ const app = express();
 
 app.use(express.json());
 
+process.on(
+  'unhandledRejection',
+  (reason: Error, _promise: Promise<unknown>) => {
+    console.log(reason);
+  },
+);
+
 app.use('/auth', authRoute);
 app.use(errorHandler);
 
-const PORT = process.env.PORT ?? 3000;
-
-app.listen(PORT, () => console.log(`listening on port ${PORT}`));
+export default app;
