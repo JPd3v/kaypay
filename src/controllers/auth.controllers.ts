@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
+import { schemaValidation } from '@src/middlewares';
+import { SignUpType, signUpSchema } from '@src/schemas';
 import {
-  authCookiesOptions,
+  addUser,
   hashPassword,
   newAccesToken,
   newRefreshToken,
-} from '@src/helpers/index';
-import { schemaValidation } from '@src/middlewares';
-import { SignUpType, signUpSchema } from '@src/schemas';
-import { addUser } from '@src/services';
+} from '@src/services';
+import { authCookiesOptions } from '@src/config';
 
 const signUp = [
   schemaValidation(signUpSchema),
@@ -20,7 +20,6 @@ const signUp = [
       const { alias, email, firstName, lastName, password } = req.body;
 
       const hashedPassword = await hashPassword(password);
-
       const user = await addUser(
         firstName,
         lastName,
@@ -28,7 +27,6 @@ const signUp = [
         email,
         hashedPassword,
       );
-
       const accessToken = newAccesToken(
         user.rows[0].id,
         firstName,
@@ -36,9 +34,7 @@ const signUp = [
         alias,
         email,
       );
-
       const refreshToken = newRefreshToken(user.rows[0].id);
-
       const responseObject = {
         ...user.rows[0],
         accessToken,
