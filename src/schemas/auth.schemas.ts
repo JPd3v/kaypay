@@ -26,7 +26,7 @@ const signUpSchema = z.object({
           const isAliasOnUse = await getUserByAlias(alias);
           if (isAliasOnUse.rowCount > 0) return false;
           return true;
-        }),
+        }, 'Alias already in use'),
       email: z
         .string()
         .nonempty('Email is required')
@@ -38,7 +38,7 @@ const signUpSchema = z.object({
           const isEmailOnUse = await getUserByEmail(email);
           if (isEmailOnUse.rowCount > 0) return false;
           return true;
-        }),
+        }, 'Email already in use'),
       password: z
         .string()
         .nonempty('Password is required')
@@ -51,7 +51,7 @@ const signUpSchema = z.object({
         .max(30, 'Confirm password max length is 30 characters'),
     })
     .refine((data) => data.password === data.confirmPassword, {
-      message: "Password and Confirm Password  don't match",
+      message: "Password and Confirm Password don't match",
       path: ['password', 'confirmPassword'],
     }),
 });
