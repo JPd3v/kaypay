@@ -1,15 +1,16 @@
 /* eslint-disable no-eval */
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { SignUpType } from '@src/schemas';
 import { pool, queries } from '../database/index';
 
-async function addUser(
-  firstName: string,
-  lastName: string,
-  alias: string,
-  email: string,
-  password: string,
-) {
+async function addUser({
+  firstName,
+  lastName,
+  alias,
+  email,
+  password,
+}: Omit<SignUpType, 'confirmPassword'>) {
   const createUser = await pool.query(queries.auth.addUser, [
     firstName,
     lastName,

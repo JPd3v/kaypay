@@ -20,13 +20,14 @@ const signUp = [
       const { alias, email, firstName, lastName, password } = req.body;
 
       const hashedPassword = await hashPassword(password);
-      const user = await addUser(
+      const user = await addUser({
         firstName,
         lastName,
         alias,
         email,
-        hashedPassword,
-      );
+        password: hashedPassword,
+      });
+
       const accessToken = newAccesToken(
         user.rows[0].id,
         firstName,
@@ -34,6 +35,7 @@ const signUp = [
         alias,
         email,
       );
+
       const refreshToken = newRefreshToken(user.rows[0].id);
       const responseObject = {
         ...user.rows[0],
