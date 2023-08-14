@@ -7,7 +7,7 @@
     "start": "cross-env NODE_ENV=production node  ./build/src/index.js",
     "build": "tsc && tsc-alias && cross-env NODE_ENV=production node  ./build/src/index.js",
     "dev": "cross-env NODE_ENV=development ts-node-dev -r tsconfig-paths/register ./src/index.ts",
-    "test:integration": "cross-env NODE_ENV=testing jest --testPathPattern=./tests/integration-tests --config=jest.config.js --detectOpenHandles --verbose --watchAll --runInBand "
+    "test:integration": "cross-env NODE_ENV=testing jest --testPathPattern=./tests/integration-tests --config=jest.config.js --detectOpenHandles --verbose --watchAll --runInBand"
   },
   "keywords": [],
   "author": "",
