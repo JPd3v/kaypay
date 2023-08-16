@@ -56,6 +56,21 @@ const signUpSchema = z.object({
     }),
 });
 
+const logInSchema = z.object({
+  body: z.object({
+    email: z
+      .string()
+      .nonempty('Email is required')
+      .email('Invalid email')
+      .max(50, 'Email max length is 50 characters'),
+    password: z
+      .string()
+      .nonempty('Password is required')
+      .max(30, 'Password max length is 30 characters'),
+  }),
+});
+
 type SignUpType = z.infer<typeof signUpSchema>['body'];
+type LogInType = z.infer<typeof logInSchema>['body'];
 // eslint-disable-next-line import/prefer-default-export
-export { signUpSchema, SignUpType };
+export { signUpSchema, SignUpType, logInSchema, LogInType };
