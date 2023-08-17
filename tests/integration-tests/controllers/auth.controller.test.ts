@@ -3,7 +3,12 @@ import app from '@src/app';
 import { ZodIssue } from 'zod';
 import { SignUpType } from '@src/schemas';
 import { deleteAllUsersFromDb } from '@tests/testing.utils';
-import { addUser, getUserByAlias } from '@src/services/index';
+import {
+  addUser,
+  getUserByAlias,
+  getUserByEmail,
+  hashPassword,
+} from '@src/services/index';
 
 const signUpRequestMock: SignUpType = {
   alias: 'testAlias',
@@ -15,11 +20,10 @@ const signUpRequestMock: SignUpType = {
 };
 
 describe('auth controllers', () => {
+  beforeEach(async () => {
+    await deleteAllUsersFromDb();
+  });
   describe('sign Up controller', () => {
-    beforeEach(async () => {
-      await deleteAllUsersFromDb();
-    });
-
     test('fails and send validation errors if any validation error occurs', async () => {
       const { statusCode, body } = await request(app).post('/auth/sign-up');
       const bodyTyped = body as Array<ZodIssue>;
@@ -114,6 +118,65 @@ describe('auth controllers', () => {
       expect(body).toHaveProperty('alias');
       expect(body).toHaveProperty('email');
       expect(body).toHaveProperty('accessToken');
+    });
+  });
+
+  describe('log in controller', () => {
+    beforeEach(async () => {
+      await addUser({
+        alias: 'logAlias',
+        email: 'logEmail@test.com',
+        firstName: 'name',
+        lastName: 'lastname',
+        password: await hashPassword('password'),
+      });
+    });
+
+    test("fails if user doesn't exists", async () => {
+      const { body, statusCode } = await request(app)
+        .post('/auth/log-in/')
+        .send({ email: 'nonExists@test.com', password: 'password' });
+
+      expect(statusCode).toBe(422);
+      expect(body).toMatchObject({ error: 'wrong email or password' });
+    });
+
+    test("fails if user password isn't correct", async () => {
+      const { body, statusCode } = await request(app)
+        .post('/auth/log-in')
+        .send({
+          email: 'logEmail@test.com',
+          password: 'wrongPassword',
+        });
+
+      expect(statusCode).toBe(422);
+      expect(body).toMatchObject({ error: 'wrong email or password' });
+    });
+
+    test('success if credentials are correct and returns user info, accessToken and refreshToken as cookie', async () => {
+      const { body, statusCode, headers } = await request(app)
+        .post('/auth/log-in')
+        .send({
+          email: 'logEmail@test.com',
+          password: 'password',
+        });
+
+      expect(statusCode).toBe(200);
+
+      expect(body).toHaveProperty('alias');
+      expect(body).toHaveProperty('balance');
+      expect(body).toHaveProperty('email');
+      expect(body).toHaveProperty('firstName');
+      expect(body).toHaveProperty('lastName');
+      expect(body).toHaveProperty('id');
+      expect(body).toHaveProperty('accessToken');
+      expect(headers['set-cookie']).toBeDefined();
+
+      const findUpdatedUser = await getUserByEmail('logEmail@test.com');
+
+      expect(findUpdatedUser.rows[0].refreshToken).toBe(
+        headers['set-cookie'][0].slice(13).split(';')[0],
+      );
     });
   });
 });
