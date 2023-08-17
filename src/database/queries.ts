@@ -1,5 +1,5 @@
 const sqlSelectAlias = {
-  userAliases: `first_name AS "firstName", last_name AS "lastName",refresh_token AS refreshToken,balance,password, alias, email, id`,
+  userAliases: `first_name AS "firstName", last_name AS "lastName", refresh_token AS "refreshToken", balance, password, alias, email, id`,
 };
 
 const auth = {

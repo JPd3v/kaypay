@@ -76,16 +76,18 @@ const logIn = [
       const finduser = await getUserByEmail(email);
 
       if (finduser.rowCount === 0) {
-        return res.status(200).json({ error: 'wrong email or password' });
+        return res.status(422).json({ error: 'wrong email or password' });
       }
+
       const user = finduser.rows[0];
 
       const userPaswordMatch = await compareUserPassword(
         password,
         user.password,
       );
+
       if (!userPaswordMatch) {
-        return res.status(200).json({ error: 'wrong email or password' });
+        return res.status(422).json({ error: 'wrong email or password' });
       }
       const accessToken = newAccesToken(user);
 
