@@ -117,7 +117,6 @@ describe('auth controllers', () => {
       expect(body).toHaveProperty('lastName');
       expect(body).toHaveProperty('alias');
       expect(body).toHaveProperty('email');
-      expect(body).toHaveProperty('accessToken');
     });
   });
 
@@ -169,13 +168,12 @@ describe('auth controllers', () => {
       expect(body).toHaveProperty('firstName');
       expect(body).toHaveProperty('lastName');
       expect(body).toHaveProperty('id');
-      expect(body).toHaveProperty('accessToken');
       expect(headers['set-cookie']).toBeDefined();
 
       const findUpdatedUser = await getUserByEmail('logEmail@test.com');
 
       expect(findUpdatedUser.rows[0].refreshToken).toBe(
-        headers['set-cookie'][0].slice(13).split(';')[0],
+        headers['set-cookie'][1].slice(13).split(';')[0],
       );
     });
   });

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { schemaValidation } from '@src/middlewares';
+import { authValidation, schemaValidation } from '@src/middlewares';
 import { LogInType, SignUpType, logInSchema, signUpSchema } from '@src/schemas';
 import {
   addUser,
@@ -50,11 +50,9 @@ const signUp = [
         refreshToken,
       });
 
-      const responseObject = {
-        ...user.rows[0],
-        accessToken,
-      };
+      const responseObject = user.rows[0];
 
+      res.cookie('accessToken', accessToken, authCookiesOptions);
       res.cookie('refreshToken', refreshToken, authCookiesOptions);
       res.status(200).json(responseObject);
     } catch (error) {
@@ -93,16 +91,14 @@ const logIn = [
 
       const refreshToken = newRefreshToken(user.id);
 
-      const responseObject = {
-        ...transformToProfileUser(user),
-        accessToken,
-      };
+      const responseObject = transformToProfileUser(user);
 
       await updateUser({
         id: user.id,
         refreshToken,
       });
 
+      res.cookie('accessToken', accessToken, authCookiesOptions);
       res.cookie('refreshToken', refreshToken, authCookiesOptions);
       return res.status(200).json(responseObject);
     } catch (error) {
@@ -111,5 +107,4 @@ const logIn = [
   },
 ];
 
-// eslint-disable-next-line import/prefer-default-export
 export { signUp, logIn };

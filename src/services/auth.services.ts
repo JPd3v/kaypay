@@ -1,6 +1,6 @@
 /* eslint-disable no-eval */
 import jwt from 'jsonwebtoken';
-import { User } from '@src/types';
+import { AccessTokenPayload, User } from '@src/types';
 import bcrypt from 'bcryptjs';
 import { SignUpType } from '@src/schemas';
 import { pool, queries } from '../database/index';
@@ -49,15 +49,20 @@ function newAccesToken({
 }: Omit<User, 'password' | 'refreshToken' | 'balance'>) {
   return jwt.sign(
     { id, firstName, lastName, alias, email },
-    process.env.ACCESS_TOKEN_SECRET as string,
+    process.env.TOKEN_SECRET as string,
     { expiresIn: eval(process.env.ACCESS_TOKEN_EXPIRATION as string) },
   );
 }
 
 function newRefreshToken(id: number) {
-  return jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET as string, {
+  return jwt.sign({ id }, process.env.TOKEN_SECRET as string, {
     expiresIn: eval(process.env.REFRESH_TOKEN_EXPIRATION as string),
   });
+}
+
+function verifyAccessToken(token: string) {
+  const verifiedToken = jwt.verify(token, process.env.TOKEN_SECRET as string);
+  return verifiedToken as AccessTokenPayload;
 }
 
 export {
@@ -66,4 +71,5 @@ export {
   newRefreshToken,
   hashPassword,
   compareUserPassword,
+  verifyAccessToken,
 };
