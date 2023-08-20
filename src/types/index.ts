@@ -9,9 +9,19 @@ interface User {
   email: string;
 }
 
+interface RefreshTokenPayload {
+  id: number;
+}
+
 type ProfileUser = Omit<User, 'password' | 'refreshToken'>;
 type AccessTokenPayload = Omit<User, 'password' | 'refreshToken' | 'balance'>;
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
-export type { User, ProfileUser, AtLeast, AccessTokenPayload };
+export type {
+  User,
+  ProfileUser,
+  AtLeast,
+  AccessTokenPayload,
+  RefreshTokenPayload,
+};

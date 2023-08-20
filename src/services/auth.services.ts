@@ -1,6 +1,6 @@
 /* eslint-disable no-eval */
 import jwt from 'jsonwebtoken';
-import { AccessTokenPayload, User } from '@src/types';
+import { AccessTokenPayload, RefreshTokenPayload, User } from '@src/types';
 import bcrypt from 'bcryptjs';
 import { SignUpType } from '@src/schemas';
 import { pool, queries } from '../database/index';
@@ -65,6 +65,11 @@ function verifyAccessToken(token: string) {
   return verifiedToken as AccessTokenPayload;
 }
 
+function verifyRefreshToken(token: string) {
+  const verifiedToken = jwt.verify(token, process.env.TOKEN_SECRET as string);
+  return verifiedToken as RefreshTokenPayload;
+}
+
 export {
   addUser,
   newAccesToken,
@@ -72,4 +77,5 @@ export {
   hashPassword,
   compareUserPassword,
   verifyAccessToken,
+  verifyRefreshToken,
 };
