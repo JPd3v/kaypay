@@ -8,6 +8,7 @@ import {
   getUserByAlias,
   getUserByEmail,
   hashPassword,
+  updateUser,
 } from '@src/services/index';
 
 const signUpRequestMock: SignUpType = {
@@ -222,6 +223,72 @@ describe('auth controllers', () => {
         firstName: 'logEmail@test.com',
         lastName: 'lastname',
       });
+    });
+  });
+
+  describe('refreshTokens controller', () => {
+    beforeEach(async () => {
+      await addUser({
+        alias: 'logAlias',
+        email: 'logEmail@test.com',
+        firstName: 'name',
+        lastName: 'lastname',
+        password: await hashPassword('password'),
+      });
+    });
+
+    test("fails if refresh token cookie isn't provided", async () => {
+      const { body, statusCode } = await request(app).get(
+        '/auth/refresh-token',
+      );
+
+      expect(statusCode).toBe(400);
+      expect(body).toMatchObject({ error: 'refresh token missing' });
+    });
+
+    test('fails if refresh token is expired and clears client auth cookies', async () => {
+      const expiredRefreshToken =
+        'refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjgsImZpcnN0TmFtZSI6InMiLCJsYXN0TmFtZSI6Imxhc3ROYW1lIiwiYWxpYXMiOiIxMiIsImVtYWlsIjoibG9nRW1haWxAdGVzdC5jb20iLCJpYXQiOjE2OTI0ODQ1MTcsImV4cCI6MTY5MjQ4NTQxN30.RKgceFeNPl-yQpBE7f7Sl9m_yNZrdprnzRw_K8syHhc; Path=/; Secure; HttpOnly;';
+      const { body, statusCode, headers } = await request(app)
+        .get('/auth/refresh-token')
+        .set('cookie', expiredRefreshToken);
+
+      expect(statusCode).toBe(401);
+      expect(headers['set-cookie']).not.toBeDefined();
+      expect(body).toMatchObject({ error: 'Unauthorized' });
+    });
+
+    test("fails if refresh token doesn't  match with user refresh token on database", async () => {
+      const user = await logUser('logEmail@test.com', 'password');
+
+      const cookies = user.headers['set-cookie'];
+
+      await updateUser({
+        id: user.body.id,
+        refreshToken:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjgsImZpcnN0TmFtZSI6InMiLCJsYXN0TmFtZSI6Imxhc3ROYW1lIiwiYWxpYXMiOiIxMiIsImVtYWlsIjoibG9nRW1haWxAdGVzdC5jb20iLCJpYXQiOjE2OTI0ODQ1MTcsImV4cCI6MTY5MjQ4NTQxN30.RKgceFeNPl-yQpBE7f7Sl9m_yNZrdprnzRw_K8syHhc',
+      });
+
+      const { body, statusCode } = await request(app)
+        .get('/auth/refresh-token')
+        .set('cookie', cookies);
+
+      expect(statusCode).toBe(401);
+      expect(body).toMatchObject({ error: 'Unauthorized' });
+    });
+
+    test('success if refresh token match with the token stored in database and returns new access and refresh tokens on cookies', async () => {
+      const user = await logUser('logEmail@test.com', 'password');
+
+      const cookies = user.headers['set-cookie'];
+
+      const { body, statusCode, headers } = await request(app)
+        .get('/auth/refresh-token')
+        .set('cookie', cookies);
+        
+      expect(statusCode).toBe(200);
+      expect(body).toMatchObject({ message: 'tokens refreshed successfully' });
+      expect(headers['set-cookie']).toBeDefined();
     });
   });
 });

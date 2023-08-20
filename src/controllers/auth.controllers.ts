@@ -6,10 +6,12 @@ import {
   compareUserPassword,
   getUserByAlias,
   getUserByEmail,
+  getUserById,
   hashPassword,
   newAccesToken,
   newRefreshToken,
   updateUser,
+  verifyRefreshToken,
 } from '@src/services';
 import { authCookiesOptions } from '@src/config';
 import { transformToProfileUser } from '@src/utils';
@@ -131,4 +133,46 @@ const logedUserInformation = [
   },
 ];
 
-export { signUp, logIn, logedUserInformation };
+const refreshTokens = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+      return res.status(400).json({ error: 'refresh token missing' });
+    }
+
+    const tokenPayload = verifyRefreshToken(refreshToken);
+
+    const foundUser = await getUserById(tokenPayload.id);
+
+    if (foundUser.rowCount < 1) {
+      res.clearCookie('refreshToken', authCookiesOptions);
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = foundUser.rows[0];
+
+    if (user.refreshToken !== refreshToken) {
+      res.clearCookie('refreshToken', authCookiesOptions);
+      res.clearCookie('accessToken', authCookiesOptions);
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const updatedRefreshToken = newRefreshToken(user.id);
+    const updatedAccessToken = newAccesToken(user);
+
+    await updateUser({ id: user.id, refreshToken: updatedRefreshToken });
+
+    res.cookie('accessToken', updatedAccessToken, authCookiesOptions);
+    res.cookie('refreshToken', updatedRefreshToken, authCookiesOptions);
+    return res.status(200).json({ message: 'tokens refreshed successfully' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export { signUp, logIn, logedUserInformation, refreshTokens };
