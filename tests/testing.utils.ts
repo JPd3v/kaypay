@@ -1,4 +1,6 @@
 import { pool, queries } from '@src/database';
+import request from 'supertest';
+import app from '@src/app';
 
 async function deleteAllUsersFromDb() {
   const query = await pool.query(queries.testingUtils.user.deleteAll, []);
@@ -6,5 +8,13 @@ async function deleteAllUsersFromDb() {
   return query;
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export { deleteAllUsersFromDb };
+async function logUser(email: string, password: string) {
+  const response = await request(app).post('/auth/log-in').send({
+    email,
+    password,
+  });
+
+  return response;
+}
+
+export { deleteAllUsersFromDb, logUser };

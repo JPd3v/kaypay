@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '@src/app';
 import { ZodIssue } from 'zod';
 import { SignUpType } from '@src/schemas';
-import { deleteAllUsersFromDb } from '@tests/testing.utils';
+import { deleteAllUsersFromDb, logUser } from '@tests/testing.utils';
 import {
   addUser,
   getUserByAlias,
@@ -175,6 +175,53 @@ describe('auth controllers', () => {
       expect(findUpdatedUser.rows[0].refreshToken).toBe(
         headers['set-cookie'][1].slice(13).split(';')[0],
       );
+    });
+  });
+
+  describe('logedUserInformation controller', () => {
+    test('fails if access token cookie is not provided', async () => {
+      const { body, statusCode } = await request(app).get('/auth/me');
+
+      expect(statusCode).toBe(400);
+      expect(body).toMatchObject({ error: 'User not logged in' });
+    });
+
+    test('fails if access token is expired', async () => {
+      const expiredCookie =
+        'accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjgsImZpcnN0TmFtZSI6InMiLCJsYXN0TmFtZSI6Imxhc3ROYW1lIiwiYWxpYXMiOiIxMiIsImVtYWlsIjoibG9nRW1haWxAdGVzdC5jb20iLCJpYXQiOjE2OTI0ODQ1MTcsImV4cCI6MTY5MjQ4NTQxN30.RKgceFeNPl-yQpBE7f7Sl9m_yNZrdprnzRw_K8syHhc; Path=/; Secure; HttpOnly;';
+
+      const { body, statusCode } = await request(app)
+        .get('/auth/me')
+        .set('cookie', expiredCookie);
+
+      expect(statusCode).toBe(401);
+      expect(body).toMatchObject({ error: 'Unauthorized' });
+    });
+
+    test('success if accessToken is valid and returns user profile information', async () => {
+      await addUser({
+        alias: 'logAlias',
+        email: 'logEmail@test.com',
+        firstName: 'name',
+        lastName: 'lastname',
+        password: await hashPassword('password'),
+      });
+
+      const user = await logUser('logEmail@test.com', 'password');
+      const userCookies = user.headers['set-cookie'];
+
+      const { body, statusCode } = await request(app)
+        .get('/auth/me')
+        .set('cookie', userCookies);
+
+      expect(statusCode).toBe(200);
+      expect(body).toMatchObject({
+        alias: 'logAlias',
+        balance: '0',
+        email: 'logEmail@test.com',
+        firstName: 'logEmail@test.com',
+        lastName: 'lastname',
+      });
     });
   });
 });
