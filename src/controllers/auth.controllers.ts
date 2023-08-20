@@ -4,6 +4,7 @@ import { LogInType, SignUpType, logInSchema, signUpSchema } from '@src/schemas';
 import {
   addUser,
   compareUserPassword,
+  getUserByAlias,
   getUserByEmail,
   hashPassword,
   newAccesToken,
@@ -107,4 +108,27 @@ const logIn = [
   },
 ];
 
-export { signUp, logIn };
+const logedUserInformation = [
+  authValidation,
+  async (
+    req: Request<unknown, unknown, LogInType, unknown>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { alias } = req.user;
+      const userInformation = await getUserByAlias(alias);
+      if (userInformation.rowCount < 1) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const responseObject = transformToProfileUser(userInformation.rows[0]);
+
+      return res.status(200).json(responseObject);
+    } catch (error) {
+      return next(error);
+    }
+  },
+];
+
+export { signUp, logIn, logedUserInformation };
