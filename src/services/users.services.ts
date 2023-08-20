@@ -1,6 +1,11 @@
 import { AtLeast, User } from '@src/types';
 import { pool, queries } from '../database';
 
+async function getUserById(id: number) {
+  const result = await pool.query<User>(queries.users.findUserById, [id]);
+  return result;
+}
+
 async function getUserByEmail(email: string) {
   const result = await pool.query<User>(queries.users.findUserByEmail, [email]);
   return result;
@@ -25,4 +30,4 @@ async function updateUser(user: AtLeast<User, 'id'>) {
   return result;
 }
 
-export { getUserByEmail, getUserByAlias, updateUser };
+export { getUserByEmail, getUserByAlias, updateUser, getUserById };

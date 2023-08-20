@@ -9,6 +9,7 @@ const auth = {
 };
 
 const users = {
+  findUserById: `SELECT ${sqlSelectAlias.userAliases} FROM users WHERE id = $1`,
   findUserByEmail: `SELECT ${sqlSelectAlias.userAliases} FROM users WHERE email ILIKE $1`,
   findUserByAlias: `SELECT ${sqlSelectAlias.userAliases} FROM users WHERE alias ILIKE $1`,
   updateUser: `UPDATE USERS 
