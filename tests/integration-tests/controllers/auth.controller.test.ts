@@ -285,10 +285,55 @@ describe('auth controllers', () => {
       const { body, statusCode, headers } = await request(app)
         .get('/auth/refresh-token')
         .set('cookie', cookies);
-        
+
       expect(statusCode).toBe(200);
       expect(body).toMatchObject({ message: 'tokens refreshed successfully' });
       expect(headers['set-cookie']).toBeDefined();
+    });
+  });
+
+  describe('logOut controller', () => {
+    test('fails if access token cookie is not provided', async () => {
+      const { body, statusCode } = await request(app).post('/auth/log-out');
+
+      expect(statusCode).toBe(400);
+      expect(body).toMatchObject({ error: 'User not logged in' });
+    });
+
+    test('fails if access token is expired', async () => {
+      const expiredCookie =
+        'accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjgsImZpcnN0TmFtZSI6InMiLCJsYXN0TmFtZSI6Imxhc3ROYW1lIiwiYWxpYXMiOiIxMiIsImVtYWlsIjoibG9nRW1haWxAdGVzdC5jb20iLCJpYXQiOjE2OTI0ODQ1MTcsImV4cCI6MTY5MjQ4NTQxN30.RKgceFeNPl-yQpBE7f7Sl9m_yNZrdprnzRw_K8syHhc; Path=/; Secure; HttpOnly;';
+
+      const { body, statusCode } = await request(app)
+        .post('/auth/log-out')
+        .set('cookie', expiredCookie);
+
+      expect(statusCode).toBe(401);
+      expect(body).toMatchObject({ error: 'Unauthorized' });
+    });
+
+    test('success if access token is valid, clears client cookies and removes refresh token from database', async () => {
+      await addUser({
+        alias: 'logAlias',
+        email: 'logEmail@test.com',
+        firstName: 'name',
+        lastName: 'lastname',
+        password: await hashPassword('password'),
+      });
+
+      const user = await logUser('logEmail@test.com', 'password');
+      const cookies = user.headers['set-cookie'];
+
+      const { body, statusCode, headers } = await request(app)
+        .post('/auth/log-out')
+        .set('cookie', cookies);
+
+      const userOnDb = await getUserByEmail('logEmail@test.com');
+      expect(statusCode).toBe(200);
+      expect(userOnDb.rows[0].refreshToken).toBe('');
+      expect(body).toMatchObject({ message: 'log out successfully' });
+      expect(headers['set-cookie'][0]).toMatch(/refreshToken=;/);
+      expect(headers['set-cookie'][1]).toMatch(/accessToken=;/);
     });
   });
 });

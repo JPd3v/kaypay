@@ -175,4 +175,20 @@ const refreshTokens = async (
   }
 };
 
-export { signUp, logIn, logedUserInformation, refreshTokens };
+const logOut = [
+  authValidation,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.user;
+      await updateUser({ id, refreshToken: '' });
+
+      res.clearCookie('refreshToken', authCookiesOptions);
+      res.clearCookie('accessToken', authCookiesOptions);
+      return res.status(200).json({ message: 'log out successfully' });
+    } catch (error) {
+      return next(error);
+    }
+  },
+];
+
+export { signUp, logIn, logedUserInformation, refreshTokens, logOut };
