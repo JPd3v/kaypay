@@ -7,7 +7,7 @@ import {
   addUser,
   getUserByAlias,
   getUserByEmail,
-  hashPassword,
+  signUpUser,
   updateUser,
 } from '@src/services/index';
 
@@ -123,12 +123,12 @@ describe('auth controllers', () => {
 
   describe('log in controller', () => {
     beforeEach(async () => {
-      await addUser({
+      await signUpUser({
         alias: 'logAlias',
         email: 'logEmail@test.com',
         firstName: 'name',
         lastName: 'lastname',
-        password: await hashPassword('password'),
+        password: 'password',
       });
     });
 
@@ -200,12 +200,12 @@ describe('auth controllers', () => {
     });
 
     test('success if accessToken is valid and returns user profile information', async () => {
-      await addUser({
+      await signUpUser({
         alias: 'logAlias',
         email: 'logEmail@test.com',
         firstName: 'name',
         lastName: 'lastname',
-        password: await hashPassword('password'),
+        password: 'password',
       });
 
       const user = await logUser('logEmail@test.com', 'password');
@@ -228,12 +228,12 @@ describe('auth controllers', () => {
 
   describe('refreshTokens controller', () => {
     beforeEach(async () => {
-      await addUser({
+      await signUpUser({
         alias: 'logAlias',
         email: 'logEmail@test.com',
         firstName: 'name',
         lastName: 'lastname',
-        password: await hashPassword('password'),
+        password: 'password',
       });
     });
 
@@ -313,12 +313,12 @@ describe('auth controllers', () => {
     });
 
     test('success if access token is valid, clears client cookies and removes refresh token from database', async () => {
-      await addUser({
+      await signUpUser({
         alias: 'logAlias',
         email: 'logEmail@test.com',
         firstName: 'name',
         lastName: 'lastname',
-        password: await hashPassword('password'),
+        password: 'password',
       });
 
       const user = await logUser('logEmail@test.com', 'password');

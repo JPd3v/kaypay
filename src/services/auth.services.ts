@@ -3,36 +3,9 @@ import jwt from 'jsonwebtoken';
 import { AccessTokenPayload, RefreshTokenPayload, User } from '@src/types';
 import bcrypt from 'bcryptjs';
 import { SignUpType } from '@src/schemas';
-import { pool, queries } from '../database/index';
-
-async function addUser({
-  firstName,
-  lastName,
-  alias,
-  email,
-  password,
-}: Omit<SignUpType, 'confirmPassword'>) {
-  const createUser = await pool.query<User>(queries.auth.addUser, [
-    firstName,
-    lastName,
-    alias,
-    email,
-    password,
-  ]);
-
-  return createUser;
-}
-
-async function compareUserPassword(
-  stringPassword: string,
-  hashedPassword: string,
-) {
-  const passwordsAreEqual = await bcrypt.compare(
-    stringPassword,
-    hashedPassword,
-  );
-  return passwordsAreEqual;
-}
+// import { pool, queries } from '../database/index';
+import { transformToProfileUser } from '@src/utils';
+import { addUser, updateUser } from './users.services';
 
 async function hashPassword(password: string) {
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -60,6 +33,56 @@ function newRefreshToken(id: number) {
   });
 }
 
+async function signUpUser({
+  firstName,
+  lastName,
+  alias,
+  email,
+  password,
+}: Omit<SignUpType, 'confirmPassword'>) {
+  const hashedPassword = await hashPassword(password);
+
+  const createUser = await addUser({
+    alias,
+    email,
+    firstName,
+    lastName,
+    password: hashedPassword,
+  });
+
+  const user = createUser.rows[0];
+
+  const accessToken = newAccesToken({
+    id: user.id,
+    firstName,
+    lastName,
+    alias,
+    email,
+  });
+
+  const refreshToken = newRefreshToken(user.id);
+
+  await updateUser({
+    id: user.id,
+    refreshToken,
+  });
+
+  const userProfileInformation = transformToProfileUser(user);
+
+  return { userProfileInformation, accessToken, refreshToken };
+}
+
+async function compareUserPassword(
+  stringPassword: string,
+  hashedPassword: string,
+) {
+  const passwordsAreEqual = await bcrypt.compare(
+    stringPassword,
+    hashedPassword,
+  );
+  return passwordsAreEqual;
+}
+
 function verifyAccessToken(token: string) {
   const verifiedToken = jwt.verify(token, process.env.TOKEN_SECRET as string);
   return verifiedToken as AccessTokenPayload;
@@ -71,10 +94,9 @@ function verifyRefreshToken(token: string) {
 }
 
 export {
-  addUser,
+  signUpUser,
   newAccesToken,
   newRefreshToken,
-  hashPassword,
   compareUserPassword,
   verifyAccessToken,
   verifyRefreshToken,

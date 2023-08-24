@@ -2,14 +2,13 @@ import { NextFunction, Request, Response } from 'express';
 import { authValidation, schemaValidation } from '@src/middlewares';
 import { LogInType, SignUpType, logInSchema, signUpSchema } from '@src/schemas';
 import {
-  addUser,
   compareUserPassword,
   getUserByAlias,
   getUserByEmail,
   getUserById,
-  hashPassword,
   newAccesToken,
   newRefreshToken,
+  signUpUser,
   updateUser,
   verifyRefreshToken,
 } from '@src/services';
@@ -26,38 +25,18 @@ const signUp = [
     try {
       const { alias, email, firstName, lastName, password } = req.body;
 
-      const hashedPassword = await hashPassword(password);
-
-      const user = await addUser({
-        firstName,
-        lastName,
-        alias,
-        email,
-        password: hashedPassword,
-      });
-
-      const savedUser = user.rows[0];
-
-      const accessToken = newAccesToken({
-        id: savedUser.id,
-        firstName,
-        lastName,
-        alias,
-        email,
-      });
-
-      const refreshToken = newRefreshToken(user.rows[0].id);
-
-      await updateUser({
-        id: savedUser.id,
-        refreshToken,
-      });
-
-      const responseObject = user.rows[0];
+      const { userProfileInformation, accessToken, refreshToken } =
+        await signUpUser({
+          firstName,
+          lastName,
+          alias,
+          email,
+          password,
+        });
 
       res.cookie('accessToken', accessToken, authCookiesOptions);
       res.cookie('refreshToken', refreshToken, authCookiesOptions);
-      res.status(200).json(responseObject);
+      res.status(200).json(userProfileInformation);
     } catch (error) {
       next(error);
     }

@@ -5,6 +5,22 @@ async function getUserById(id: number) {
   const result = await pool.query<User>(queries.users.findUserById, [id]);
   return result;
 }
+async function addUser({
+  firstName,
+  lastName,
+  alias,
+  email,
+  password,
+}: Omit<User, 'balance' | 'refreshToken' | 'id'>) {
+  const result = await pool.query<User>(queries.users.addUser, [
+    firstName,
+    lastName,
+    alias,
+    email,
+    password,
+  ]);
+  return result;
+}
 
 async function getUserByEmail(email: string) {
   const result = await pool.query<User>(queries.users.findUserByEmail, [email]);
@@ -30,4 +46,4 @@ async function updateUser(user: AtLeast<User, 'id'>) {
   return result;
 }
 
-export { getUserByEmail, getUserByAlias, updateUser, getUserById };
+export { getUserByEmail, getUserByAlias, updateUser, getUserById, addUser };
