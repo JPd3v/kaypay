@@ -1,3 +1,4 @@
+import AppError from '@src/utils/appError.utils.';
 import { NextFunction, Request, Response } from 'express';
 import { TokenExpiredError } from 'jsonwebtoken';
 import { ZodError } from 'zod';
@@ -14,6 +15,9 @@ function errorHandler(
 
   if (error instanceof TokenExpiredError) {
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+  if (error instanceof AppError) {
+    return res.status(error.httpCode).json({ error: error.message });
   }
 
   console.log(error);
