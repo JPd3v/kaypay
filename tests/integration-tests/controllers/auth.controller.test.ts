@@ -243,7 +243,7 @@ describe('auth controllers', () => {
       );
 
       expect(statusCode).toBe(400);
-      expect(body).toMatchObject({ error: 'refresh token missing' });
+      expect(body).toMatchObject({ error: 'user not logged in' });
     });
 
     test('fails if refresh token is expired and clears client auth cookies', async () => {
@@ -261,7 +261,7 @@ describe('auth controllers', () => {
     test("fails if refresh token doesn't  match with user refresh token on database", async () => {
       const user = await logUser('logEmail@test.com', 'password');
 
-      const cookies = user.headers['set-cookie'];
+      const cookies = user.headers['set-cookie'][1];
 
       await updateUser({
         id: user.body.id,
@@ -272,7 +272,6 @@ describe('auth controllers', () => {
       const { body, statusCode } = await request(app)
         .get('/auth/refresh-token')
         .set('cookie', cookies);
-
       expect(statusCode).toBe(401);
       expect(body).toMatchObject({ error: 'Unauthorized' });
     });
@@ -287,6 +286,7 @@ describe('auth controllers', () => {
         .set('cookie', cookies);
 
       expect(statusCode).toBe(200);
+
       expect(body).toMatchObject({ message: 'tokens refreshed successfully' });
       expect(headers['set-cookie']).toBeDefined();
     });

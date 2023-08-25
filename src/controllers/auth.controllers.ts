@@ -3,15 +3,13 @@ import { authValidation, schemaValidation } from '@src/middlewares';
 import { LogInType, SignUpType, logInSchema, signUpSchema } from '@src/schemas';
 import {
   getLogedUserProfile,
-  getUserById,
   logInUser,
-  newAccesToken,
-  newRefreshToken,
+  refreshUserTokens,
   signUpUser,
   updateUser,
-  verifyRefreshToken,
 } from '@src/services';
 import { authCookiesOptions } from '@src/config';
+import AppError from '@src/utils/appError.utils.';
 
 const signUp = [
   schemaValidation(signUpSchema),
@@ -91,35 +89,22 @@ const refreshTokens = async (
     const { refreshToken } = req.cookies;
 
     if (!refreshToken) {
-      return res.status(400).json({ error: 'refresh token missing' });
+      throw new AppError('refresh token missing', 400, 'user not logged in');
     }
 
-    const tokenPayload = verifyRefreshToken(refreshToken);
-
-    const foundUser = await getUserById(tokenPayload.id);
-
-    if (foundUser.rowCount < 1) {
-      res.clearCookie('refreshToken', authCookiesOptions);
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const user = foundUser.rows[0];
-
-    if (user.refreshToken !== refreshToken) {
-      res.clearCookie('refreshToken', authCookiesOptions);
-      res.clearCookie('accessToken', authCookiesOptions);
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const updatedRefreshToken = newRefreshToken(user.id);
-    const updatedAccessToken = newAccesToken(user);
-
-    await updateUser({ id: user.id, refreshToken: updatedRefreshToken });
+    const { updatedAccessToken, updatedRefreshToken } = await refreshUserTokens(
+      refreshToken,
+    );
 
     res.cookie('accessToken', updatedAccessToken, authCookiesOptions);
     res.cookie('refreshToken', updatedRefreshToken, authCookiesOptions);
+
     return res.status(200).json({ message: 'tokens refreshed successfully' });
   } catch (error) {
+    if (error instanceof AppError) {
+      res.clearCookie('refreshToken', authCookiesOptions);
+      res.clearCookie('accessToken', authCookiesOptions);
+    }
     return next(error);
   }
 };

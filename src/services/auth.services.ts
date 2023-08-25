@@ -142,10 +142,34 @@ async function getLogedUserProfile(id: number) {
   return userProfileInformation;
 }
 
+async function refreshUserTokens(refreshToken: string) {
+  const tokenPayload = verifyRefreshToken(refreshToken);
+
+  const findUser = await getUserById(tokenPayload.id);
+
+  if (findUser.rowCount === 0) {
+    throw new AppError('User not found', 404, 'User not found');
+  }
+
+  const user = findUser.rows[0];
+
+  if (user.refreshToken !== refreshToken) {
+    throw new AppError('Unauthorized', 401, 'Unauthorized');
+  }
+
+  const updatedRefreshToken = newRefreshToken(user.id);
+  const updatedAccessToken = newAccesToken(user);
+
+  await updateUser({ id: user.id, refreshToken: updatedRefreshToken });
+
+  return { updatedRefreshToken, updatedAccessToken };
+}
+
 export {
   signUpUser,
   logInUser,
   getLogedUserProfile,
+  refreshUserTokens,
   newAccesToken,
   newRefreshToken,
   compareUserPassword,
