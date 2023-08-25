@@ -2,10 +2,9 @@ import { NextFunction, Request, Response } from 'express';
 import { authValidation, schemaValidation } from '@src/middlewares';
 import { LogInType, SignUpType, logInSchema, signUpSchema } from '@src/schemas';
 import {
-  compareUserPassword,
   getUserByAlias,
-  getUserByEmail,
   getUserById,
+  logInUser,
   newAccesToken,
   newRefreshToken,
   signUpUser,
@@ -53,36 +52,12 @@ const logIn = [
     try {
       const { email, password } = req.body;
 
-      const finduser = await getUserByEmail(email);
-
-      if (finduser.rowCount === 0) {
-        return res.status(422).json({ error: 'wrong email or password' });
-      }
-
-      const user = finduser.rows[0];
-
-      const userPaswordMatch = await compareUserPassword(
-        password,
-        user.password,
-      );
-
-      if (!userPaswordMatch) {
-        return res.status(422).json({ error: 'wrong email or password' });
-      }
-      const accessToken = newAccesToken(user);
-
-      const refreshToken = newRefreshToken(user.id);
-
-      const responseObject = transformToProfileUser(user);
-
-      await updateUser({
-        id: user.id,
-        refreshToken,
-      });
+      const { userProfileInformation, accessToken, refreshToken } =
+        await logInUser({ email, password });
 
       res.cookie('accessToken', accessToken, authCookiesOptions);
       res.cookie('refreshToken', refreshToken, authCookiesOptions);
-      return res.status(200).json(responseObject);
+      return res.status(200).json(userProfileInformation);
     } catch (error) {
       return next(error);
     }

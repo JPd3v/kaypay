@@ -4,8 +4,9 @@ import { AccessTokenPayload, RefreshTokenPayload, User } from '@src/types';
 import bcrypt from 'bcryptjs';
 import { SignUpType } from '@src/schemas';
 // import { pool, queries } from '../database/index';
+import AppError from '@src/utils/appError.utils.';
 import { transformToProfileUser } from '@src/utils';
-import { addUser, updateUser } from './users.services';
+import { addUser, getUserByEmail, updateUser } from './users.services';
 
 async function hashPassword(password: string) {
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -93,8 +94,39 @@ function verifyRefreshToken(token: string) {
   return verifiedToken as RefreshTokenPayload;
 }
 
+async function logInUser({
+  email,
+  password,
+}: Pick<User, 'email' | 'password'>) {
+  const finduser = await getUserByEmail(email);
+
+  if (finduser.rowCount === 0) {
+    throw new AppError('user not found', 422, 'wrong email or password');
+  }
+
+  const user = finduser.rows[0];
+
+  const userPaswordMatch = await compareUserPassword(password, user.password);
+
+  if (!userPaswordMatch) {
+    throw new AppError("password don't match", 422, 'wrong email or password');
+  }
+
+  const accessToken = newAccesToken(user);
+  const refreshToken = newRefreshToken(user.id);
+  const userProfileInformation = transformToProfileUser(user);
+
+  await updateUser({
+    id: user.id,
+    refreshToken,
+  });
+
+  return { userProfileInformation, accessToken, refreshToken };
+}
+
 export {
   signUpUser,
+  logInUser,
   newAccesToken,
   newRefreshToken,
   compareUserPassword,
