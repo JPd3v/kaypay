@@ -6,7 +6,12 @@ import { SignUpType } from '@src/schemas';
 // import { pool, queries } from '../database/index';
 import AppError from '@src/utils/appError.utils.';
 import { transformToProfileUser } from '@src/utils';
-import { addUser, getUserByEmail, updateUser } from './users.services';
+import {
+  addUser,
+  getUserByEmail,
+  getUserById,
+  updateUser,
+} from './users.services';
 
 async function hashPassword(password: string) {
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -98,13 +103,13 @@ async function logInUser({
   email,
   password,
 }: Pick<User, 'email' | 'password'>) {
-  const finduser = await getUserByEmail(email);
+  const findUser = await getUserByEmail(email);
 
-  if (finduser.rowCount === 0) {
+  if (findUser.rowCount === 0) {
     throw new AppError('user not found', 422, 'wrong email or password');
   }
 
-  const user = finduser.rows[0];
+  const user = findUser.rows[0];
 
   const userPaswordMatch = await compareUserPassword(password, user.password);
 
@@ -124,9 +129,23 @@ async function logInUser({
   return { userProfileInformation, accessToken, refreshToken };
 }
 
+async function getLogedUserProfile(id: number) {
+  const findUser = await getUserById(id);
+
+  if (findUser.rowCount === 0) {
+    throw new AppError('User not found', 404, 'User not found');
+  }
+  const user = findUser.rows[0];
+
+  const userProfileInformation = transformToProfileUser(user);
+
+  return userProfileInformation;
+}
+
 export {
   signUpUser,
   logInUser,
+  getLogedUserProfile,
   newAccesToken,
   newRefreshToken,
   compareUserPassword,

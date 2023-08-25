@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { authValidation, schemaValidation } from '@src/middlewares';
 import { LogInType, SignUpType, logInSchema, signUpSchema } from '@src/schemas';
 import {
-  getUserByAlias,
+  getLogedUserProfile,
   getUserById,
   logInUser,
   newAccesToken,
@@ -12,7 +12,6 @@ import {
   verifyRefreshToken,
 } from '@src/services';
 import { authCookiesOptions } from '@src/config';
-import { transformToProfileUser } from '@src/utils';
 
 const signUp = [
   schemaValidation(signUpSchema),
@@ -72,15 +71,11 @@ const logedUserInformation = [
     next: NextFunction,
   ) => {
     try {
-      const { alias } = req.user;
-      const userInformation = await getUserByAlias(alias);
-      if (userInformation.rowCount < 1) {
-        return res.status(404).json({ error: 'User not found' });
-      }
+      const { id } = req.user;
 
-      const responseObject = transformToProfileUser(userInformation.rows[0]);
+      const userInformation = await getLogedUserProfile(id);
 
-      return res.status(200).json(responseObject);
+      return res.status(200).json(userInformation);
     } catch (error) {
       return next(error);
     }
