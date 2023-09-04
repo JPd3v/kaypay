@@ -1,6 +1,6 @@
 interface User {
   id: number;
-  balance: string;
+  balance: number;
   firstName: string;
   lastName: string;
   refreshToken: string | null;
@@ -10,6 +10,13 @@ interface User {
 }
 
 interface RefreshTokenPayload {
+  id: number;
+}
+
+interface Deposit {
+  userId: number;
+  createdAt: string;
+  balance: number;
   id: number;
 }
 
@@ -24,4 +31,5 @@ export type {
   AtLeast,
   AccessTokenPayload,
   RefreshTokenPayload,
+  Deposit,
 };
