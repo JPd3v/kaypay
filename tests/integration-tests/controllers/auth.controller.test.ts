@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '@src/app';
 import { ZodIssue } from 'zod';
 import { SignUpType } from '@src/schemas';
-import { deleteAllUsersFromDb, logUser } from '@tests/testing.utils';
+import { deleteAllFromDb, logUser } from '@tests/testing.utils';
 import {
   addUser,
   getUserByAlias,
@@ -22,7 +22,7 @@ const signUpRequestMock: SignUpType = {
 
 describe('auth controllers', () => {
   beforeEach(async () => {
-    await deleteAllUsersFromDb();
+    await deleteAllFromDb();
   });
   describe('sign Up controller', () => {
     test('fails and send validation errors if any validation error occurs', async () => {
@@ -218,7 +218,7 @@ describe('auth controllers', () => {
       expect(statusCode).toBe(200);
       expect(body).toMatchObject({
         alias: 'logAlias',
-        balance: '0',
+        balance: 0,
         email: 'logEmail@test.com',
         firstName: 'logEmail@test.com',
         lastName: 'lastname',

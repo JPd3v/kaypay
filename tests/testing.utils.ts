@@ -8,6 +8,18 @@ async function deleteAllUsersFromDb() {
   return query;
 }
 
+async function deleteDepositFromDb() {
+  const query = await pool.query(queries.testingUtils.deposits.deleteAll, []);
+
+  return query;
+}
+
+async function deleteAllFromDb() {
+  const query = await pool.query(queries.testingUtils.deleteAll, []);
+
+  return query;
+}
+
 async function logUser(email: string, password: string) {
   const response = await request(app).post('/auth/log-in').send({
     email,
@@ -17,4 +29,4 @@ async function logUser(email: string, password: string) {
   return response;
 }
 
-export { deleteAllUsersFromDb, logUser };
+export { deleteAllUsersFromDb, logUser, deleteDepositFromDb, deleteAllFromDb };
