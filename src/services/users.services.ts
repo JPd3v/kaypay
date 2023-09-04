@@ -1,18 +1,22 @@
+import { Pool, PoolClient } from 'pg';
 import { AtLeast, User } from '@src/types';
 import { pool, queries } from '../database';
 
-async function getUserById(id: number) {
-  const result = await pool.query<User>(queries.users.findUserById, [id]);
+async function getUserById(id: number, client: PoolClient | Pool = pool) {
+  const result = await client.query<User>(queries.users.findUserById, [id]);
   return result;
 }
-async function addUser({
-  firstName,
-  lastName,
-  alias,
-  email,
-  password,
-}: Omit<User, 'balance' | 'refreshToken' | 'id'>) {
-  const result = await pool.query<User>(queries.users.addUser, [
+async function addUser(
+  {
+    firstName,
+    lastName,
+    alias,
+    email,
+    password,
+  }: Omit<User, 'balance' | 'refreshToken' | 'id'>,
+  client: PoolClient | Pool = pool,
+) {
+  const result = await client.query<User>(queries.users.addUser, [
     firstName,
     lastName,
     alias,
@@ -22,18 +26,24 @@ async function addUser({
   return result;
 }
 
-async function getUserByEmail(email: string) {
-  const result = await pool.query<User>(queries.users.findUserByEmail, [email]);
+async function getUserByEmail(email: string, client: PoolClient | Pool = pool) {
+  const result = await client.query<User>(queries.users.findUserByEmail, [
+    email,
+  ]);
   return result;
 }
 
-async function getUserByAlias(alias: string) {
-  const result = await pool.query<User>(queries.users.findUserByAlias, [alias]);
+async function getUserByAlias(alias: string, client: PoolClient | Pool = pool) {
+  const result = await client.query<User>(queries.users.findUserByAlias, [
+    alias,
+  ]);
   return result;
 }
-
-async function updateUser(user: AtLeast<User, 'id'>) {
-  const result = await pool.query<User>(queries.users.updateUser, [
+async function updateUser(
+  user: AtLeast<User, 'id'>,
+  client: PoolClient | Pool = pool,
+) {
+  const result = await client.query<User>(queries.users.updateUser, [
     user.firstName,
     user.lastName,
     user.alias,
@@ -46,4 +56,24 @@ async function updateUser(user: AtLeast<User, 'id'>) {
   return result;
 }
 
-export { getUserByEmail, getUserByAlias, updateUser, getUserById, addUser };
+async function updateUserBalance(
+  id: number,
+  balance: number,
+  client: PoolClient | Pool = pool,
+) {
+  const result = await client.query(queries.users.updateUserBalance, [
+    balance,
+    id,
+  ]);
+
+  return result;
+}
+
+export {
+  getUserByEmail,
+  getUserByAlias,
+  updateUser,
+  getUserById,
+  addUser,
+  updateUserBalance,
+};
