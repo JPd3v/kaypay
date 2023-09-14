@@ -2,7 +2,7 @@ import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import express from 'express';
 import { errorHandler } from './middlewares';
-import { authRoute, depositsRoute } from './routes';
+import { authRoutes, depositsRoutes, transferencesRoutes } from './routes';
 
 const app = express();
 
@@ -16,8 +16,9 @@ process.on(
   },
 );
 
-app.use('/auth', authRoute);
-app.use('/deposits', depositsRoute);
+app.use('/auth', authRoutes);
+app.use('/deposits', depositsRoutes);
+app.use('/transferences', transferencesRoutes);
 app.use(errorHandler);
 
 export default app;

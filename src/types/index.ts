@@ -20,6 +20,22 @@ interface Deposit {
   id: number;
 }
 
+interface Transference {
+  id: number;
+  senderId: number;
+  receiverId: number;
+  createdAt: string;
+  balance: number;
+}
+
+interface PublicTransference {
+  id: number;
+  receiverAlias: string;
+  type: 'sended' | 'received';
+  createdAt: string;
+  balance: number;
+}
+
 type ProfileUser = Omit<User, 'password' | 'refreshToken'>;
 type AccessTokenPayload = Omit<User, 'password' | 'refreshToken' | 'balance'>;
 
@@ -32,4 +48,6 @@ export type {
   AccessTokenPayload,
   RefreshTokenPayload,
   Deposit,
+  Transference,
+  PublicTransference,
 };

@@ -1,6 +1,10 @@
 const sqlSelectAlias = {
-  userAliases: `first_name AS "firstName", last_name AS "lastName", refresh_token AS "refreshToken", balance, password, alias, email, id`,
-  depositsAliases: `user_id AS "userId", created_at AS "createdAt", balance, id`,
+  userAliases:
+    `first_name AS "firstName", last_name AS "lastName", refresh_token AS "refreshToken", balance, password, alias, email, id` as const,
+  depositsAliases:
+    `user_id AS "userId", created_at AS "createdAt", balance, id` as const,
+  transferencesAliases:
+    `sender_id AS "senderId", receiver_id AS "receiverId", created_at AS "createdAt", balance, id` as const,
 };
 
 const users = {
@@ -32,6 +36,26 @@ const deposits = {
     `INSERT INTO deposits (user_id, balance) VALUES($1,$2) RETURNING ${sqlSelectAlias.depositsAliases}` as const,
 };
 
+const transferences = {
+  findTransferenceById: `SELECT ${sqlSelectAlias.transferencesAliases} FROM transferences WHERE id =$1`,
+  getUserTransferences:
+    `SELECT balance, created_at AS "createdAt", type, id, alias  FROM ( SELECT t.balance, t.created_at,'sended' as type, t.id, u.alias 
+  FROM transferences t
+    JOIN users u ON u.id = t.receiver_id
+    WHERE t.sender_id =$1
+  UNION ALL
+    SELECT t.balance, t.created_at,'received' as type, t.id,u.alias
+  FROM transferences t
+    JOIN users u ON u.id = t.sender_id
+    WHERE t.receiver_id = $1
+    ) AS transferences
+    ORDER BY created_at desc
+    OFFSET $2 LIMIT $3
+	` as const,
+  addTransference:
+    `INSERT INTO transferences (sender_id, receiver_id, balance) VALUES($1,$2,$3) RETURNING ${sqlSelectAlias.transferencesAliases}` as const,
+};
+
 const testingUtils = {
   user: {
     deleteAll: `DELETE FROM users`,
@@ -39,13 +63,14 @@ const testingUtils = {
   deposits: {
     deleteAll: `DELETE FROM deposits`,
   },
-  deleteAll: `DELETE FROM deposits; DELETE FROM users`,
+  deleteAll: `DELETE FROM deposits; DELETE FROM transferences; DELETE FROM users;`,
 };
 
 const queries = {
   users,
   testingUtils,
   deposits,
+  transferences,
 };
 
 export default queries;
