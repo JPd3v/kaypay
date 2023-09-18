@@ -5,6 +5,8 @@ const sqlSelectAlias = {
     `user_id AS "userId", created_at AS "createdAt", balance, id` as const,
   transferencesAliases:
     `sender_id AS "senderId", receiver_id AS "receiverId", created_at AS "createdAt", balance, id` as const,
+  withdrawsAliases:
+    `alias_cbu as "aliasCbu", created_at AS "createdAt", user_id AS "userId", bank, balance, id` as const,
 };
 
 const users = {
@@ -56,6 +58,12 @@ const transferences = {
     `INSERT INTO transferences (sender_id, receiver_id, balance) VALUES($1,$2,$3) RETURNING ${sqlSelectAlias.transferencesAliases}` as const,
 };
 
+const withdraws = {
+  addWithdraw: `INSERT INTO withdraws (
+    bank, alias_cbu, user_id, balance)
+    VALUES ($1, $2, $3, $4) RETURNING ${sqlSelectAlias.withdrawsAliases}` as const,
+};
+
 const testingUtils = {
   user: {
     deleteAll: `DELETE FROM users`,
@@ -71,6 +79,7 @@ const queries = {
   testingUtils,
   deposits,
   transferences,
+  withdraws,
 };
 
 export default queries;
