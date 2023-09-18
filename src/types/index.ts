@@ -36,6 +36,15 @@ interface PublicTransference {
   balance: number;
 }
 
+interface Withdraw {
+  id: number;
+  userId: number;
+  balance: number;
+  createdAt: string;
+  bank: string;
+  aliasCbu: string;
+}
+
 type ProfileUser = Omit<User, 'password' | 'refreshToken'>;
 type AccessTokenPayload = Omit<User, 'password' | 'refreshToken' | 'balance'>;
 
@@ -50,4 +59,5 @@ export type {
   Deposit,
   Transference,
   PublicTransference,
+  Withdraw,
 };
