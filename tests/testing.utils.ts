@@ -1,6 +1,7 @@
 import { pool, queries } from '@src/database';
 import request from 'supertest';
 import app from '@src/app';
+import { signUpUser } from '@src/services';
 
 async function deleteAllUsersFromDb() {
   const query = await pool.query(queries.testingUtils.user.deleteAll, []);
@@ -20,6 +21,23 @@ async function deleteAllFromDb() {
   return query;
 }
 
+async function createTestUser(
+  alias = 'logAlias',
+  email = 'logEmail@test.com',
+  firstName = 'name',
+  lastName = 'lastname',
+  password = 'password',
+) {
+  const newUser = await signUpUser({
+    alias,
+    email,
+    firstName,
+    lastName,
+    password,
+  });
+
+  return newUser;
+}
 async function logUser(email: string, password: string) {
   const response = await request(app).post('/auth/log-in').send({
     email,
@@ -29,4 +47,10 @@ async function logUser(email: string, password: string) {
   return response;
 }
 
-export { deleteAllUsersFromDb, logUser, deleteDepositFromDb, deleteAllFromDb };
+export {
+  deleteAllUsersFromDb,
+  logUser,
+  deleteDepositFromDb,
+  deleteAllFromDb,
+  createTestUser,
+};

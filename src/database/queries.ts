@@ -71,7 +71,7 @@ const testingUtils = {
   deposits: {
     deleteAll: `DELETE FROM deposits`,
   },
-  deleteAll: `DELETE FROM deposits; DELETE FROM transferences; DELETE FROM users;`,
+  deleteAll: `DELETE FROM deposits; DELETE FROM transferences; DELETE from withdraws; DELETE FROM users;`,
 };
 
 const queries = {
