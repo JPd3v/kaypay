@@ -7,6 +7,7 @@ import {
   depositsRoutes,
   transferencesRoutes,
   withdrawsRoutes,
+  recordsRoutes,
 } from './routes';
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/auth', authRoutes);
 app.use('/deposits', depositsRoutes);
 app.use('/transferences', transferencesRoutes);
 app.use('/withdraws', withdrawsRoutes);
+app.use('/records', recordsRoutes);
 
 app.use(errorHandler);
 

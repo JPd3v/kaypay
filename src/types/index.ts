@@ -45,6 +45,19 @@ interface Withdraw {
   aliasCbu: string;
 }
 
+type RecordTypes = 'withdraw' | 'deposit' | 'received' | 'sended';
+
+interface Record {
+  balance: number;
+  createdAt: string;
+  type: RecordTypes;
+  id: number;
+  alias: string;
+  userId: number;
+  bank: string;
+  aliasCbu: string;
+}
+
 type ProfileUser = Omit<User, 'password' | 'refreshToken'>;
 type AccessTokenPayload = Omit<User, 'password' | 'refreshToken' | 'balance'>;
 
@@ -60,4 +73,5 @@ export type {
   Transference,
   PublicTransference,
   Withdraw,
+  Record,
 };

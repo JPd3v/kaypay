@@ -74,12 +74,37 @@ const testingUtils = {
   deleteAll: `DELETE FROM deposits; DELETE FROM transferences; DELETE from withdraws; DELETE FROM users;`,
 };
 
+const records = {
+  getUserRecords:
+    `SELECT balance, created_at AS "createdAt", type, id, alias ,user_id as "userId",bank,alias_cbu as "aliasCbu" FROM ( SELECT t.balance, t.created_at,'sended' as type, t.id, u.alias,null::int as "user_id",Null as bank,Null as "alias_cbu"  
+    FROM transferences t
+    JOIN users u ON u.id = t.receiver_id
+    WHERE t.sender_id =$1
+UNION ALL
+    SELECT t.balance, t.created_at,'received' as type, t.id,u.alias,null::int as "user_id",Null as bank, Null as "alias_cbu"  
+    FROM transferences t
+    JOIN users u ON u.id = t.sender_id
+    WHERE t.receiver_id = $1
+UNION ALL 
+    SELECT  balance, created_at, 'deposit' as type,id, Null as "alias", user_id, Null as bank,Null as "alias_cbu" 
+    FROM deposits 
+    WHERE user_id =$1
+UNION ALL 
+    SELECT  balance, created_at, 'withdraw' as type,id, Null as "alias",user_id, bank, alias_cbu FROM withdraws 
+    WHERE user_id =$1
+  	) AS records
+    ORDER BY created_at desc
+    OFFSET $2 LIMIT $3
+` as const,
+};
+
 const queries = {
   users,
   testingUtils,
   deposits,
   transferences,
   withdraws,
+  records,
 };
 
 export default queries;
