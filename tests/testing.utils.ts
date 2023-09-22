@@ -38,7 +38,7 @@ async function createTestUser(
 
   return newUser;
 }
-async function logUser(email: string, password: string) {
+async function logUser(email = 'logEmail@test.com', password = 'password') {
   const response = await request(app).post('/auth/log-in').send({
     email,
     password,
